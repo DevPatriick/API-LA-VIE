@@ -1,27 +1,24 @@
 const sequelize = require('sequelize');
-const {psicologo}  = require('../model/relacao');
+const {psicologo, atendimentos}  = require('../model/relacao');
 
 const controllerPsicologos = { 
     
      // GET // buscar todos os psicologos // 
       async listarPsicologos(req, res){
-      const listarPsicologo = await psicologo.findAll();
+      const listarPsicologo = await psicologo.findAll({attributes: {exclude: ['senha']}});
       res.json(listarPsicologo);
 },
 
-    // GET // buscar um psicologo pelo ID //      AJUSTAR // AJUSTAR // MOSTRA A SENHA E ARRAY VAZIO NO ID NAO ENCONTRADO
+    // GET // buscar um psicologo pelo ID //      
       async  listarOnePsicologo(req, res){
       const {id} = req.params;
     
         try {
-            const psicologos = await psicologo.findAll({
-                where: {
-                    id
-                },
-            });
-             res.json(psicologos)}
-           catch (error) {
-            res.status(404).json('ID não encontrado');
+            const psicologos = await psicologo.findByPk(id, {attributes: {exclude: ['senha']}})
+            if(!psicologos) throw new Error ("Psicologo não encontrado")
+             res.status(200).json(psicologos)
+         } catch (error) {
+            res.status(404).json(error.message);
         } 
 },
 
@@ -31,12 +28,20 @@ const controllerPsicologos = {
     async deletarPsicologo(req, res){
         
         const { id } = req.params;
-        await psicologo.destroy({
-            where: {
-                id
-            }
-        });
-        res.status(404).json('Psicólogo excluido com sucesso!');
+         try {
+            const apagar = await psicologo.findByPk(id)
+            if(!apagar) throw new Error ("Psicólog não encontrado")
+            await psicologo.destroy({
+                where: {
+                    id
+                }
+            });
+             res.json("Psicólogo excluído com sucesso")
+         } catch (error) {
+            res.status(404).json(error.message);
+         }
+        
+       
     },
 
 
@@ -49,18 +54,18 @@ const controllerPsicologos = {
         
         
 try {
-    const psicologoAtualizado = await psicologo.update(
+    const psicologoAtualizado = await psicologo.findByPk(id)
+    if(!psicologoAtualizado) throw new Error ("Psicólogo não encontrado")
+    psicologoAtualizado.update(
         {
             nome,
             email,
             senha,
             apresentacao
-    }, {
-        where: {
-            id
-        }
-    });
-    res.json({'nome': nome , 'email': email, "senha":senha, 'apresentação': apresentacao});
+    }, 
+       
+);
+   return res.status(200).json(psicologoAtualizado)
 }
       catch (error) {
     res.status(400).json('Erro na requisição')

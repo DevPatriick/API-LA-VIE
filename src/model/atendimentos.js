@@ -1,6 +1,7 @@
 const db = require('../database/conexao');
 const { DataTypes } = require('sequelize');
 const pacientes = require('./pacientes');
+const psicologo = require('./psicologo');
 
 const atendimentos = db.define("atendimentos", {
     id: {
@@ -15,8 +16,18 @@ const atendimentos = db.define("atendimentos", {
             key: 'id'
         }
     },
+    psicologo_id: {
+        type: DataTypes.INTEGER,
+        references: { 
+            model: psicologo,
+            key: "id"
+        }
+    },
     data_atendimento:{
         type: DataTypes.DATE
+    },
+    observacao:{
+        type: DataTypes.STRING
     },
     createdAt: {
         type: DataTypes.DATE,
@@ -24,9 +35,6 @@ const atendimentos = db.define("atendimentos", {
     updatedAt: {
         type: DataTypes.DATE,
     }, 
-    observacao:{
-        type: DataTypes.STRING
-    }
     
 }, {
     tablename: "atendimentos"

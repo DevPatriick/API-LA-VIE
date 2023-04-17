@@ -1,5 +1,5 @@
 const sequelize = require('sequelize');
-const  {pacientes}  = require('../model/relacao');
+const  {pacientes, atendimentos}  = require('../model/relacao');
 
 const controllerPacientes = { 
     
@@ -13,11 +13,9 @@ const controllerPacientes = {
       async  listarOnePaciente(req, res){
       const { id } = req.params;
        try {
-        const buscarPaciente = await pacientes.findAll({
-            where: {
-                id
-            }, });
-            res.status(200).json(buscarPaciente)
+          const paciente = await pacientes.findByPk(id);
+          if(!paciente) throw new Error ("Paciente não encontrado")
+          res.status(200).json(paciente)
        } catch (error) {
            res.status(404).json('ID não encontrado!')
        }
@@ -46,14 +44,17 @@ const controllerPacientes = {
     // DELETE // deletar um paciente // ajustar quando o id nao é encontrado
 
     async deletarPacientes(req, res){
-        
         const { id } = req.params;
-        await pacientes.destroy({
-            where: {
-                id
-            }
-        });
-        res.status(404).json('Paciente excluido com sucesso!');
+        try {
+            const paciente = await pacientes.findByPk(id)
+            if(!paciente) throw new Error ("Paciente não encontrado")
+            await pacientes.destroy({
+                where: {id}
+            });
+            res.json("Paciente excluido com sucesso")
+        } catch (error) {
+            return res.status(404).json(error.message)
+        }
     },
 
 
@@ -66,20 +67,17 @@ const controllerPacientes = {
         
         
 try {
-    const pacienteAtualizado = await pacientes.update(
-        {
+    const pacienteAtualizado = await pacientes.findByPk(id);
+    if(!pacienteAtualizado) throw new Error("Paciente não encontrado")
+    pacienteAtualizado.update({
             nome,
             email,
             idade
-    }, {
-        where: {
-            id
-        }
-    });
-    res.json({'nome': nome , 'email': email, "idade":idade});
-}
+    })
+       
+    res.status(200).json(pacienteAtualizado)}
       catch (error) {
-    res.status(400).json('Erro na requisição')
+   res.status(400).json('Erro na requisição ou email já cadastrado')
 }
        
 }}
